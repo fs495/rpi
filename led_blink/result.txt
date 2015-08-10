@@ -1,0 +1,4 @@
+blink_sh1.sh	~5kHz		sysfs with shell script (frequent open/close)
+blink_sh2.sh	~25.5kHz	sysfs with shell script (no open/close)
+blink_sysfs.c	~116kHz		sysfs with C
+blink_mmap.c	~3.76MHz	mmaped register access with C
