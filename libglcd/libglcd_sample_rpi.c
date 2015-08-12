@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "sysfs_gpio.h"
+
 /* 液晶モジュールのCS#信号とRS信号に接続するGPIOピン番号 */
 #define GPIO_CS_PIN 22
 #define GPIO_RS_PIN 27
@@ -38,40 +40,6 @@ static int gpio_rs_fd = -1;
 static int spi_fd = -1;
 
 /*----------------------------------------------------------------------*/
-
-/*
- * 指定されたGPIOピンを出力用に設定
- */
-static int hw_gpio_init(int pin)
-{
-    int fd;
-    char buf[256];
-
-    if((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
-	return -1;
-    sprintf(buf, "%d", pin);
-    write(fd, buf, strlen(buf));
-    close(fd);
-
-    sprintf(buf, "/sys/class/gpio/gpio%d/direction", pin);
-    if((fd = open(buf, O_WRONLY)) < 0)
-	goto failed;
-    write(fd, "out", 3);
-    close(fd);
-
-    sprintf(buf, "/sys/class/gpio/gpio%d/value", pin);
-    if((fd = open(buf, O_WRONLY)) < 0)
-	goto failed;
-    return fd;
-
-  failed:
-    if((fd = open("/sys/class/gpio/unexport", O_WRONLY)) < 0)
-	return -1;
-    sprintf(buf, "%d", pin);
-    write(fd, buf, strlen(buf));
-    close(fd);
-    return -1;
-}
 
 static int hw_spi_init()
 {
@@ -111,13 +79,13 @@ static int hw_spi_init()
 
 void hw_init(void)
 {
-    gpio_cs_fd = hw_gpio_init(GPIO_CS_PIN);
+    gpio_cs_fd = sysfs_gpio_open("out", GPIO_CS_PIN);
     if(gpio_cs_fd < 0) {
 	fprintf(stderr, "Error: hw_gpio_init(GPIO_CS_PIN)\n");
 	exit(1);
     }
 
-    gpio_rs_fd = hw_gpio_init(GPIO_RS_PIN);
+    gpio_rs_fd = sysfs_gpio_open("out", GPIO_RS_PIN);
     if(gpio_rs_fd < 0) {
 	fprintf(stderr, "Error: hw_gpio_init(GPIO_RS_PIN)\n");
 	exit(1);
@@ -133,9 +101,9 @@ void hw_init(void)
 void hw_fini(void)
 {
     if(gpio_cs_fd >= 0)
-	close(gpio_cs_fd);
+	sysfs_gpio_close(gpio_cs_fd, GPIO_CS_PIN);
     if(gpio_rs_fd >= 0)
-	close(gpio_rs_fd);
+	sysfs_gpio_close(gpio_rs_fd, GPIO_RS_PIN);
     if(spi_fd >= 0)
 	close(spi_fd);
 
@@ -146,24 +114,24 @@ void hw_fini(void)
 
 void glcd_connect_spi(void)
 {
-    if(write(gpio_cs_fd, "0", 1) < 1)
+    if(sysfs_gpio_clr(gpio_cs_fd))
 	fprintf(stderr, "glcd_connect_spi: write error\n");
 }
 
 void glcd_disconnect_spi(void)
 {
-    if(write(gpio_cs_fd, "1", 1) < 1)
+    if(sysfs_gpio_set(gpio_cs_fd))
 	fprintf(stderr, "glcd_disconnect_spi: write error\n");
 }
 
 void glcd_select_cmd(void)
 {
-    write(gpio_rs_fd, "0", 1);
+    sysfs_gpio_clr(gpio_rs_fd);
 }
 
 void glcd_select_data(void)
 {
-    write(gpio_rs_fd, "1", 1);
+    sysfs_gpio_set(gpio_rs_fd);
 }
 
 void glcd_send_byte(uint8_t byte)
