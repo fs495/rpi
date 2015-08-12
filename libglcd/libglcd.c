@@ -75,9 +75,9 @@ void glcd_display_off(void)
     glcd_send_byte(0xaf);
 }
 
-void glcd_set_display_page(uint8_t page)
+void glcd_set_display_row(uint8_t row)
 {
-    glcd_send_byte(0x40 | page);
+    glcd_send_byte(0x40 | row);
 }
 
 void glcd_set_addr_page(uint8_t page)
@@ -172,7 +172,7 @@ void glcd_write_blockp(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 void glcd_clear_vram()
 {
     uint8_t x, y;
-    for(y = 0; y < GLCD_PAGES; y++) {
+    for(y = 0; y < GLCD_VRAM_PAGES; y++) {
 	glcd_select_cmd();
 	glcd_set_addr_page(y);
 

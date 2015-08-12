@@ -1,17 +1,14 @@
+#define CONFIG_IMAGE_TEST 0
+#define CONFIG_FONT_TEST 0
+#define CONFIG_SCREEN 1
+
 #include "libglcd.h"
 
-#ifndef __AVR__
-# define PROGMEM
-#endif
-
-#define CONFIG_IMAGE_TEST 1
-#define CONFIG_FONT_TEST 1
-
 #ifdef CONFIG_IMAGE_TEST
+# ifndef __AVR__
+#  define PROGMEM
+# endif
 # include "toho-komakyo.c"
-#endif
-#ifdef CONFIG_FONT_TEST
-#include "../font/font8x16.c"
 #endif
 
 int main(int argc, char *argv[])
@@ -25,7 +22,7 @@ int main(int argc, char *argv[])
     for(;;) {
 	uint8_t i;
 
-#ifdef CONFIG_IMAGE_TEST
+#if CONFIG_IMAGE_TEST
 	glcd_connect_spi();
 	glcd_write_block(0, 0, IMG_TOHO_KOMAKYO_WIDTH,
 			 IMG_TOHO_KOMAKYO_HEIGHT / 8,
@@ -34,7 +31,7 @@ int main(int argc, char *argv[])
 	sleep(1);
 #endif
 
-#ifdef CONFIG_FONT_TEST
+#if CONFIG_FONT_TEST
 	glcd_connect_spi();
 	glcd_write_blockp(64, 0, 8, 6, font8x16 + 16);
 	for(i = 0; i < 16 * 3; i++) {
@@ -43,6 +40,18 @@ int main(int argc, char *argv[])
 	}
 	glcd_disconnect_spi();
 	sleep(1);
+#endif
+
+#if CONFIG_SCREEN
+	for(i = 0; i < 100; i++) {
+	    glcd_connect_spi();
+	    glcd_line_wrap(1);
+	    glcd_puts("\nHello, ");
+	    glcd_putchar(i / 10 + '0');
+	    glcd_putchar(i % 10 + '0');
+	    glcd_disconnect_spi();
+	    usleep(500 * 1000);
+	}
 #endif
     }
 }
