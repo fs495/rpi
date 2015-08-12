@@ -1,6 +1,7 @@
 /**
- * sysfs経由でGPIOファイルをオープン/クローズする
+ * sysfs経由でGPIOを操作する
  */
+#include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -9,13 +10,13 @@ int sysfs_gpio_open(const char *dir, unsigned pin)
     int fd, len;
     char buf[32];
 
-    /* 使用を宣言 */
+    /* 使用を宣言。writeの返り値を調べるのが本来だが、
+     * 継続使用する場合もあるのでチェックしない */
     if((fd = open("/sys/class/gpio/export", O_WRONLY)) < 0)
 	goto failed;
     sprintf(buf, "%d", pin);
     len = strlen(buf);
-    if(write(fd, buf, len) < len)
-	goto failed;
+    write(fd, buf, len);
     close(fd);
 
     /* 入出力を設定 */
@@ -62,10 +63,10 @@ int sysfs_gpio_close(int fd, unsigned pin)
 
 int sysfs_gpio_set(int fd)
 {
-    return write(fd, "1", 1) == 1;
+    return write(fd, "1", 1) != 1;
 }
 
 int sysfs_gpio_clr(int fd)
 {
-    return write(fd, "0", 1) == 1;
+    return write(fd, "0", 1) != 1;
 }

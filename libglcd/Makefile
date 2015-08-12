@@ -1,5 +1,5 @@
 TARGET	= glcd_test
-SOURCES = glcd_test.c libglcd_sample_rpi.c
+SOURCES = glcd_test.c sysfs_gpio.c libglcd_sample_rpi.c
 OBJECTS = $(SOURCES:%.c=%.o)
 
 all:: $(TARGET)
