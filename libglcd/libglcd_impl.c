@@ -120,6 +120,7 @@ void glcd_leave_sleep_mode(void)
 
 /*
  * ブロックデータを(sx,sy)の位置から、横wドット、縦hページ分書き込む
+ * sxとwの単位はドット、syとhの単位はページ
  */
 void glcd_write_block(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 		      const uint8_t *p)
@@ -144,6 +145,7 @@ void glcd_write_block(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 
 /*
  * ブロックデータを(sx,sy)の位置から、横wドット、縦hページ分書き込む
+ * sxとwの単位はドット、syとhの単位はページ
  */
 void glcd_write_blockp(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 		       const uint8_t *p)
@@ -167,19 +169,28 @@ void glcd_write_blockp(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 }
 
 /*
- * 表示メモリをクリアする
+ * 表示メモリを指定値でフィルする
  */
-void glcd_clear_vram()
+void glcd_fill_vram(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h, uint8_t ptn)
 {
     uint8_t x, y;
-    for(y = 0; y < GLCD_VRAM_PAGES; y++) {
+    for(y = 0; y < h; y++) {
 	glcd_select_cmd();
-	glcd_set_addr_page(y);
+	glcd_set_addr_page(sy + y);
 
-	glcd_set_addr_col(0);
+	glcd_set_addr_col(sx);
 	glcd_select_data();
-	for(x = 0; x < GLCD_WIDTH; x++)
-	    glcd_send_byte(0);
+	for(x = 0; x < w; x++)
+	    glcd_send_byte(ptn);
     }
     glcd_select_cmd();
 }
+
+/*
+ * 表示メモリをクリアする
+ */
+void glcd_clear_vram(void)
+{
+    glcd_fill_vram(0, 0, GLCD_WIDTH, GLCD_VRAM_PAGES, 0);
+}
+

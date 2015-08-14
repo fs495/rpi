@@ -162,4 +162,4 @@ void glcd_send_block(const uint8_t *p, unsigned len)
 	fprintf(stderr, "Warn: glcd_send_block: ioctl(SPI_IOC_MESSAGE(1))\n");
 }
 
-#include "libglcd.c"
+#include "libglcd_impl.c"
