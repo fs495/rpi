@@ -89,7 +89,8 @@ void glcd_putchar(uint16_t c)
     case FIXED8x16:
 	if(c < 0x20 || c >= 0x7f)
 	    return;
-	glcd_write_block(curx, cury, 8, base_height, font8x16 + (c - 0x20) * base_height * 8);
+	glcd_write_block(curx, cury, 8, base_height,
+			 font8x16 + (c - 0x20) * base_height * 8);
 	curx += 8;
     }
 

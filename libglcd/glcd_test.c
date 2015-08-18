@@ -1,4 +1,5 @@
 #define CONFIG_IMAGE_TEST 0
+#define CONFIG_BAR_GRAPH 1
 #define CONFIG_RAW_FONT_TEST 0
 #define CONFIG_FONT 1
 
@@ -43,6 +44,20 @@ int main(int argc, char *argv[])
 	glcd_disconnect_spi();
 #endif
 
+#if CONFIG_BAR_GRAPH
+	glcd_connect_spi();
+	glcd_set_display_row(0);
+	for(i = 0; i < GLCD_WIDTH; i++) {
+	    glcd_fill_vram(i, 1, 1, 4, 255);
+	    msleep(5);
+	}
+	for(i = 0; i < GLCD_WIDTH; i++) {
+	    glcd_fill_vram(i, 1, 1, 4, 0);
+	    msleep(5);
+	}
+	glcd_disconnect_spi();
+#endif
+
 #if CONFIG_RAW_FONT_TEST
 	/* 生のフォントデータ、ブロック転送 */
 	glcd_connect_spi();
@@ -80,7 +95,7 @@ int main(int argc, char *argv[])
 	    char buf[64];
 	    sprintf(buf, "%d,", i);
 	    glcd_puts(buf);
-	    msleep(100);
+	    msleep(50);
 	}
 	glcd_disconnect_spi();
 #endif

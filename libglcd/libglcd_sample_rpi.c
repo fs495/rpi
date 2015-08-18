@@ -4,12 +4,12 @@
  *
  * P1 name   AQM1248
  * -- ------ -------
- * 13 GPIO27 RS
- * 15 GPIO22 CS#
  * 17 3.3V   VDD
  * 19 MOSI   SDI
  * 21 n/c    n/c
+ * 22 GPIO25 RS
  * 23 SCLK   SCLK
+ * 24 CE0    CS#
  * 25 GND    GND
  */
 #include "libglcd.h"
@@ -25,17 +25,15 @@
 
 #include "sysfs_gpio.h"
 
-/* 液晶モジュールのCS#信号とRS信号に接続するGPIOピン番号 */
-#define GPIO_CS_PIN 22
-#define GPIO_RS_PIN 27
+/* 液晶モジュールのRS信号に接続するGPIOピン番号 */
+#define GPIO_RS_PIN 25
 
-#define SPI_SPEED (1000 * 1000)
+#define SPI_SPEED (16 * 1000 * 1000)
 #define SPI_BITS 8
 #define SPI_DELAY 0
 
 #define HAVE_BLOCK_TRANSFER
 
-static int gpio_cs_fd = -1;
 static int gpio_rs_fd = -1;
 static int spi_fd = -1;
 
@@ -44,7 +42,7 @@ static int spi_fd = -1;
 static int hw_spi_init()
 {
     int fd, ret;
-    uint32_t mode = SPI_MODE_1 | SPI_NO_CS;
+    uint32_t mode = SPI_MODE_1;
     uint8_t bits = SPI_BITS;
     uint32_t speed = SPI_SPEED;
 
@@ -79,12 +77,6 @@ static int hw_spi_init()
 
 void hw_init(void)
 {
-    gpio_cs_fd = sysfs_gpio_open("out", GPIO_CS_PIN);
-    if(gpio_cs_fd < 0) {
-	fprintf(stderr, "Error: hw_gpio_init(GPIO_CS_PIN)\n");
-	exit(1);
-    }
-
     gpio_rs_fd = sysfs_gpio_open("out", GPIO_RS_PIN);
     if(gpio_rs_fd < 0) {
 	fprintf(stderr, "Error: hw_gpio_init(GPIO_RS_PIN)\n");
@@ -100,28 +92,22 @@ void hw_init(void)
 
 void hw_fini(void)
 {
-    if(gpio_cs_fd >= 0)
-	sysfs_gpio_close(gpio_cs_fd, GPIO_CS_PIN);
     if(gpio_rs_fd >= 0)
 	sysfs_gpio_close(gpio_rs_fd, GPIO_RS_PIN);
     if(spi_fd >= 0)
 	close(spi_fd);
 
-    gpio_cs_fd = gpio_rs_fd = spi_fd = -1;
+    gpio_rs_fd = spi_fd = -1;
 }
 
 /*----------------------------------------------------------------------*/
 
 void glcd_connect_spi(void)
 {
-    if(sysfs_gpio_clr(gpio_cs_fd))
-	fprintf(stderr, "glcd_connect_spi: write error\n");
 }
 
 void glcd_disconnect_spi(void)
 {
-    if(sysfs_gpio_set(gpio_cs_fd))
-	fprintf(stderr, "glcd_disconnect_spi: write error\n");
 }
 
 void glcd_select_cmd(void)
