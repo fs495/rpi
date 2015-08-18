@@ -10,7 +10,7 @@ static uint8_t line_wrap; /* 右端で行を折り返すか */
 /**
  * フォントを設定
  */
-uint8_t glcd_config_screen(uint8_t ft)
+uint8_t glcd_config_font(uint8_t ft)
 {
     switch(ft) {
     case FIXED8x16:
@@ -33,6 +33,9 @@ void glcd_line_wrap(uint8_t enabled)
     line_wrap = enabled;
 }
 
+/**
+ * 画面クリアし、文字表示位置を初期化する
+ */
 void glcd_clear_screen(void)
 {
     glcd_clear_vram();
@@ -41,18 +44,18 @@ void glcd_clear_screen(void)
 }
 
 /**
- * 改行処理
+ * 改行の内部処理
  */
-static void glcd_newline(uint8_t incry)
+static void glcd_newline(void)
 {
     /* カーソルを次の行の先頭に移動。
      * スクロール処理のため、まだ境界超え処理しない */
     curx = 0;
-    cury += incry;
+    cury += base_height;
 
     /* 表示可能範囲を超えてカーソルを移動したら、画面をスクロールする */
     if(cury >= (dispy + GLCD_VIEW_PAGES) % GLCD_VRAM_PAGES) {
-	dispy = (dispy + incry) % GLCD_VRAM_PAGES;
+	dispy = (dispy + base_height) % GLCD_VRAM_PAGES;
 	glcd_set_display_row(dispy * 8);
     }
 

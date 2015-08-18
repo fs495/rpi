@@ -1,19 +1,5 @@
 /**
  * グラフィック液晶モジュールAQM1248のテンプレートライブラリ
- *
- * 使用側では以下の関数を実装する。
- * (1) glcd_connect_spi()	AQM1248に対してSPI接続する。SS信号をアサート。
- * (2) glcd_disconnect_spi()	AQM1248に対してSPI接続を解除する
- * (3) glcd_select_cmd()	コマンド送信状態(RS=L)にする
- * (4) glcd_select_data()	データ送信状態(RS=H)にする
- * (5) glcd_send_byte()		データ/コマンドを出力する
- * (6) glcd_send_block()	データ/コマンドを出力する(オプション)
- *
- * すべてのAPI関数はglcd_connect_spi()とglcd_disconnect_spi()の
- * 呼び出しの間に呼びださなければならない。
- * 
- * ユーザ側はデータ送信状態にして、glcd_send_byte()でデータやコマンドを送信しても
- * 構わないが、API関数呼び出し時はコマンド送信状態でなければならない。
  */
 
 #if defined(__AVR__)
@@ -119,8 +105,7 @@ void glcd_leave_sleep_mode(void)
  */
 
 /*
- * ブロックデータを(sx,sy)の位置から、横wドット、縦hページ分書き込む
- * sxとwの単位はドット、syとhの単位はページ
+ * ブロックデータを書き込む
  */
 void glcd_write_block(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 		      const uint8_t *p)
@@ -144,8 +129,7 @@ void glcd_write_block(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 }
 
 /*
- * ブロックデータを(sx,sy)の位置から、横wドット、縦hページ分書き込む
- * sxとwの単位はドット、syとhの単位はページ
+ * ブロックデータを書き込む
  */
 void glcd_write_blockp(uint8_t sx, uint8_t sy, uint8_t w, uint8_t h,
 		       const uint8_t *p)
