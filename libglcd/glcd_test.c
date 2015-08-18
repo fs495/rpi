@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 #if CONFIG_FONT
 	/* フォント込みのスクリーン表示 */
-	glcd_config_font(FIXED8x16);
+	glcd_config_font(ASCII7_8x16);
 	glcd_line_wrap(1);
 
 	glcd_connect_spi();

@@ -13,7 +13,7 @@ static uint8_t line_wrap; /* 右端で行を折り返すか */
 uint8_t glcd_config_font(uint8_t ft)
 {
     switch(ft) {
-    case FIXED8x16:
+    case ASCII7_8x16:
 	base_height = 2;
 	break;
 
@@ -89,7 +89,7 @@ void glcd_putchar(uint16_t c)
 
     /* 文字イメージの表示 */
     switch(font_type) {
-    case FIXED8x16:
+    case ASCII7_8x16:
 	if(c < 0x20 || c >= 0x7f)
 	    return;
 	glcd_write_block(curx, cury, 8, base_height,
@@ -102,12 +102,76 @@ void glcd_putchar(uint16_t c)
 	glcd_newline();
 }
 
+#define ISO2022_SS2 0x8e /* G2->GL */
+#define ISO2022_SS3 0x8f /* G3->GL */
+
 /**
  * 文字列表示
  */
 void glcd_puts(const char *s)
 {
-    /* TODO: 文字符号化の処理 */
-    while(*s)
-	glcd_putchar(*s++);
+    while(s[0]) {
+	switch(font_type) {
+	case ASCII7_8x16:
+	    /* 常に1バイト=1文字と想定し、文字出力する */
+	    glcd_putchar(s[0]);
+	    s += 1;
+	    break;
+
+	case EUCJP_8x16:
+	    /* 第1バイトの第7ビットが0の場合はASCII, 
+	     * 第1バイトがSS2の場合はJIS X0201(半角カナ)、
+	     * それ以外はJIS X0208と決め打ちする。
+	     * 不正コード、補助漢字は扱わない */
+	    if(s[0] & 0x80 == 0) {
+		glcd_putchar(s[0]);
+		s += 1;
+	    } else {
+		glcd_putchar((s[0] << 8) | s[1]);
+		s += 2;
+	    }
+	    break;
+
+	case UTF8_8x16:
+	    /* UTF-8符号化に従ってデコードする。
+	     * 第1バイトだけでバイト数を決め打ちし、
+	     * 不正コードは特にチェックしない。
+	     * UCS-2に収まらないコードポイントは単に読み捨てる。
+	     * デコードされたコードポイントがすべて表示できるわけではない。*/
+	    if(s[0] <= 0x7f) {
+		/* 0xxxxxxx */
+		glcd_putchar(s[0]);
+		s += 1;
+	    } else if(s[0] <= 0xdf) {
+		/* 110yyyyx 10xxxxxx */
+		glcd_putchar((s[0] & 0x1f) << 6 | (s[1] & 0x3f));
+		s += 2;
+	    } else if(s[0] <= 0xef) {
+		/* 1110yyyy 10yxxxxx 10xxxxxx  */
+		glcd_putchar((s[0] & 0x0f) << 12
+			     | (s[1] & 0x3f) << 6 | (s[2] & 0x3f));
+		s += 3;
+	    } else if(s[0] <= 0xf7) {
+		/* 11110yyy 10yyxxxx 10xxxxxx 10xxxxxx */
+		s += 4;
+	    } else if(s[0] <= 0xfb) {
+		/* 111110yy 10yyyxxx 10xxxxxx 10xxxxxx 10xxxxxx */
+		s += 5;
+	    } else if(s[0] <= 0xfd) {
+		/* 1111110y 10yyyyxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx */
+		s += 6;
+	    } else {
+		s += 1;
+	    }
+	default:
+	    s += 1;
+	}
+    }
+}
+
+
+uint32_t utf8tounicode(const uint8_t *p)
+{
+    uint32_t u;
+
 }

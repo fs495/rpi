@@ -81,7 +81,9 @@ void glcd_clear_vram(void);
  * フォントAPI
  */
 enum font_types {
-    FIXED8x16,
+    ASCII7_8x16,
+    EUCJP_8x16,
+    UTF8_8x16,
 };
 
 /* フォントを設定する */
