@@ -3,6 +3,7 @@
 #define CONFIG_RAW_FONT_TEST 0
 #define CONFIG_FONT 1
 
+#include <stdio.h>
 #include "libglcd.h"
 
 #if defined(__AVR__)

@@ -79,7 +79,7 @@ void glcd_putchar(uint16_t c)
     }
 
     if(c == '\n') {
-	glcd_newline(base_height);
+	glcd_newline();
 	return;
     }
 
@@ -99,7 +99,7 @@ void glcd_putchar(uint16_t c)
 
     /* 折り返しする設定時に、カーソルが右端を超えたら改行 */
     if(curx >= GLCD_WIDTH && line_wrap)
-	glcd_newline(base_height);
+	glcd_newline();
 }
 
 /**
