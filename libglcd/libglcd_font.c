@@ -110,19 +110,21 @@ void glcd_putchar(uint16_t c)
  */
 void glcd_puts(const char *s)
 {
-    while(s[0]) {
-	switch(font_type) {
-	case ASCII7_8x16:
-	    /* 常に1バイト=1文字と想定し、文字出力する */
+    switch(font_type) {
+    case ASCII7_8x16:
+	/* 常に1バイト=1文字と想定し、文字出力する */
+	while(s[0]) {
 	    glcd_putchar(s[0]);
 	    s += 1;
-	    break;
+	}
+	break;
 
-	case EUCJP_8x16:
-	    /* 第1バイトの第7ビットが0の場合はASCII, 
-	     * 第1バイトがSS2の場合はJIS X0201(半角カナ)、
-	     * それ以外はJIS X0208と決め打ちする。
-	     * 不正コード、補助漢字は扱わない */
+    case EUCJP_8x16:
+	/* 第1バイトの第7ビットが0の場合はASCII, 
+	 * 第1バイトがSS2の場合はJIS X0201(半角カナ)、
+	 * それ以外はJIS X0208と決め打ちする。
+	 * 不正コード、補助漢字は扱わない */
+	while(s[0]) {
 	    if(s[0] & 0x80 == 0) {
 		glcd_putchar(s[0]);
 		s += 1;
@@ -130,14 +132,16 @@ void glcd_puts(const char *s)
 		glcd_putchar((s[0] << 8) | s[1]);
 		s += 2;
 	    }
-	    break;
+	}
+	break;
 
-	case UTF8_8x16:
-	    /* UTF-8符号化に従ってデコードする。
-	     * 第1バイトだけでバイト数を決め打ちし、
-	     * 不正コードは特にチェックしない。
-	     * UCS-2に収まらないコードポイントは単に読み捨てる。
-	     * デコードされたコードポイントがすべて表示できるわけではない。*/
+    case UTF8_8x16:
+	/* UTF-8符号化に従ってデコードする。
+	 * 第1バイトだけでバイト数を決め打ちし、
+	 * 不正コードは特にチェックしない。
+	 * UCS-2に収まらないコードポイントは単に読み捨てる。
+	 * デコードされたコードポイントがすべて表示できるわけではない。*/
+	while(s[0]) {
 	    if(s[0] <= 0x7f) {
 		/* 0xxxxxxx */
 		glcd_putchar(s[0]);
@@ -163,15 +167,7 @@ void glcd_puts(const char *s)
 	    } else {
 		s += 1;
 	    }
-	default:
-	    s += 1;
 	}
+	break;
     }
-}
-
-
-uint32_t utf8tounicode(const uint8_t *p)
-{
-    uint32_t u;
-
 }
